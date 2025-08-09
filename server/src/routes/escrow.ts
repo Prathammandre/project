@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { keccak256, toUtf8Bytes } from 'ethers';
 import { prisma } from '../services/prisma.js';
+import { requireAdmin } from '../middleware/adminAuth.js';
 
 export const router = Router();
 
@@ -21,7 +22,7 @@ router.post('/deposit', async (req, res) => {
   }
 });
 
-router.post('/release', async (req, res) => {
+router.post('/release', requireAdmin, async (req, res) => {
   const { auctionId } = req.body as { auctionId: string };
   try {
     const result = await prisma.escrowDeposit.updateMany({ where: { auctionId, status: 'HELD' }, data: { status: 'RELEASED' } });
@@ -31,7 +32,7 @@ router.post('/release', async (req, res) => {
   }
 });
 
-router.post('/refund', async (req, res) => {
+router.post('/refund', requireAdmin, async (req, res) => {
   const { auctionId } = req.body as { auctionId: string };
   try {
     const result = await prisma.escrowDeposit.updateMany({ where: { auctionId, status: 'HELD' }, data: { status: 'REFUNDED' } });

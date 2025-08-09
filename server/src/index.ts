@@ -7,6 +7,7 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 
 import { router as apiRouter } from './routes/index.js';
+import { startEscrowSettlementJob } from './jobs/escrowSettlement.js';
 
 const app = express();
 
@@ -28,4 +29,5 @@ const port = Number(process.env.PORT || 4000);
 app.listen(port, () => {
   // eslint-disable-next-line no-console
   console.log(`Server running on :${port}`);
+  startEscrowSettlementJob();
 });

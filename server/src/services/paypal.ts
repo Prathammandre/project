@@ -1,40 +1,48 @@
-import paypal from '@paypal/paypal-server-sdk';
+import { Client, Environment, OrdersController, type OrderRequest } from '@paypal/paypal-server-sdk';
 import type { Request } from 'express';
 
-const environment = () => {
+let cachedClient: Client | null = null;
+
+function getClient(): Client {
+  if (cachedClient) return cachedClient;
   const clientId = process.env.PAYPAL_CLIENT_ID || '';
   const clientSecret = process.env.PAYPAL_CLIENT_SECRET || '';
   if (!clientId || !clientSecret) throw new Error('Missing PayPal credentials');
-  const baseUrl = process.env.PAYPAL_BASE_URL || 'https://api-m.sandbox.paypal.com';
-  return new paypal.core.LiveEnvironment({ clientId, clientSecret, baseUrl });
-};
-
-const client = () => new paypal.core.PayPalHttpClient(environment());
+  const env = (process.env.PAYPAL_ENVIRONMENT || 'Sandbox') as keyof typeof Environment;
+  cachedClient = new Client({
+    environment: Environment[env] ?? Environment.Sandbox,
+    clientCredentialsAuthCredentials: {
+      oAuthClientId: clientId,
+      oAuthClientSecret: clientSecret,
+    },
+  });
+  return cachedClient;
+}
 
 export async function createOrder(params: { amount: string; currency: string; referenceId?: string }) {
-  const request = new paypal.orders.OrdersCreateRequest();
-  request.requestBody({
+  const client = getClient();
+  const orders = new OrdersController(client);
+  const body: OrderRequest = {
     intent: 'CAPTURE',
-    purchase_units: [
+    purchaseUnits: [
       {
-        reference_id: params.referenceId,
-        amount: { currency_code: params.currency, value: params.amount },
+        referenceId: params.referenceId,
+        amount: { currencyCode: params.currency, value: params.amount },
       },
     ],
-  });
-  const response = await client().execute(request);
+  } as any;
+  const response = await orders.createOrder({ body, prefer: 'return=representation' });
   return response.result;
 }
 
 export async function captureOrder(orderId: string) {
-  const request = new paypal.orders.OrdersCaptureRequest(orderId);
-  request.requestBody({});
-  const response = await client().execute(request);
+  const client = getClient();
+  const orders = new OrdersController(client);
+  const response = await orders.captureOrder({ id: orderId });
   return response.result;
 }
 
-export async function verifyWebhookSignature(req: Request) {
-  // Placeholder: implement verify with PayPal WebhookEvent.verify
-  // The SDK v3 server does not yet export a direct helper; verify using HTTP call if needed.
+export async function verifyWebhookSignature(_req: Request) {
+  // TODO: Implement verification using PayPal's Webhook verification endpoint
   return true;
 }
