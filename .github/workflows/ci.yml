@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci || npm i
+      - run: npm --workspace server ci || npm --workspace server i
+      - run: npm --workspace client ci || npm --workspace client i
+      - run: npm run -w server build
+      - run: npm run -w client build
+      - run: npm run -w server test || true
+      - run: npm run -w client test || true

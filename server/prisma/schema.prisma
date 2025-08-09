@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      String   @default("USER")
+  createdAt DateTime @default(now())
+}
+
+model KycRecord {
+  id        String   @id @default(cuid())
+  userId    String
+  status    String   @default("PENDING")
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model EscrowDeposit {
+  id        String   @id @default(cuid())
+  auctionId String
+  txHash    String   @unique
+  amount    String
+  chainId   Int
+  status    String   @default("HELD")
+  createdAt DateTime @default(now())
+}
