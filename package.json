@@ -1,0 +1,26 @@
+{
+  "name": "project-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Full Stack Project with live auctions, PayPal, crypto escrow, admin UI, and production hardening",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "build": "npm run -w server build && npm run -w client build",
+    "dev": "npm run -w server dev & npm run -w client dev",
+    "start": "npm run -w server start & npm run -w client preview",
+    "test": "npm run -w server test && npm run -w client test",
+    "lint": "npm run -w server lint && npm run -w client lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prathammandre/project.git"
+  },
+  "homepage": "https://github.com/Prathammandre/project#readme",
+  "bugs": {
+    "url": "https://github.com/Prathammandre/project/issues"
+  },
+  "license": "MIT"
+}
